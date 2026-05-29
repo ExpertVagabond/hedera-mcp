@@ -126,10 +126,11 @@ Besides tools, the server exposes addressable, keyless MCP **resources** agents 
 ## Verification
 
 - `npm run lint` / `npm run build` — clean against `@hashgraph/sdk` 2.81.0
-- `node test-battle.mjs` — **72/73** build + read tools pass against live testnet
+- `node test-battle.mjs` — 72/73 in the auto-discovery suite (1 skip: `query_contract` needs a known ABI, verified separately) → **all 73 tools verified**
 - `node test-live.mjs` — **10/10 write paths executed on testnet**, Mirror Node-verified
 - `node test-battle-live.mjs` — **battle mode: 31/31 operations on testnet** across two accounts (full token lifecycle incl. freeze/KYC/pause/wipe, NFT, topic, file, scheduled transfer requiring a 2nd signer, PRNG), Mirror Node-verified
 - `node test-contract.mjs` — real Solidity contract **compiled → deployed → executed → read** end-to-end (`store(42)` → `retrieve()` = 42), confirming the full EVM path and `query_contract`
+- `node test-contract-abi.mjs` — `query_contract` verified against a real contract ABI: `answer()` → 73 (uint), `title()` → "hedera-mcp" (string), `ping()` → 73 (pure)
 
 ## Development
 

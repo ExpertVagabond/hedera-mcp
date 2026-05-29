@@ -117,6 +117,7 @@ hedera_decode_transaction { transactionBase64: "<bytes>" }
 - `node test-battle.mjs` — **72/73** build + read tools pass against live testnet
 - `node test-live.mjs` — **10/10 write paths executed on testnet**, Mirror Node-verified
 - `node test-battle-live.mjs` — **battle mode: 31/31 operations on testnet** across two accounts (full token lifecycle incl. freeze/KYC/pause/wipe, NFT, topic, file, scheduled transfer requiring a 2nd signer, PRNG), Mirror Node-verified
+- `node test-contract.mjs` — real Solidity contract **compiled → deployed → executed → read** end-to-end (`store(42)` → `retrieve()` = 42), confirming the full EVM path and `query_contract`
 
 ## Development
 

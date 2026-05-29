@@ -1,0 +1,54 @@
+{
+  "name": "@purplesquirrel/hedera-mcp",
+  "version": "0.1.0",
+  "description": "Comprehensive MCP server for Hedera (Hashgraph) — full coverage of Account, Token (HTS), Consensus (HCS), Smart Contract (EVM), File, Schedule, and Network services. Reads via Mirror Node (keyless); writes are build-only (returns unsigned serialized transactions). Never holds keys.",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "hedera-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "logo.png",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "hedera",
+    "hashgraph",
+    "hts",
+    "hcs",
+    "smart-contracts",
+    "mirror-node",
+    "web3",
+    "agent",
+    "devrel"
+  ],
+  "author": "Matthew Karsten <matthewkarstenconnects@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ExpertVagabond/hedera-mcp.git"
+  },
+  "dependencies": {
+    "@hashgraph/sdk": "^2.0.0",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

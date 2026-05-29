@@ -1,0 +1,315 @@
+/** Token service (HTS): create, mint, burn, transfer, associate, freeze, KYC, pause, wipe, delete + reads. */
+import { z } from "zod";
+import {
+  AccountId,
+  NftId,
+  PublicKey,
+  TokenAssociateTransaction,
+  TokenBurnTransaction,
+  TokenCreateTransaction,
+  TokenDeleteTransaction,
+  TokenDissociateTransaction,
+  TokenFreezeTransaction,
+  TokenGrantKycTransaction,
+  TokenId,
+  TokenMintTransaction,
+  TokenPauseTransaction,
+  TokenRevokeKycTransaction,
+  TokenSupplyType,
+  TokenType,
+  TokenUnfreezeTransaction,
+  TokenUnpauseTransaction,
+  TokenWipeTransaction,
+  TransferTransaction,
+} from "@hashgraph/sdk";
+import type { Register } from "../types.js";
+import { HederaCtx, json } from "../context.js";
+
+function maybeKey(value?: string): PublicKey | undefined {
+  return value ? PublicKey.fromString(value) : undefined;
+}
+
+export function registerTokenTools(register: Register, ctx: HederaCtx): void {
+  register(
+    "hedera_create_fungible_token",
+    "Build (unsigned) a new fungible token (HTS). Treasury defaults to the payer.",
+    {
+      name: z.string().describe("Token name"),
+      symbol: z.string().describe("Token symbol"),
+      decimals: z.number().int().min(0).optional().describe("Decimals (default 0)"),
+      initialSupply: z.number().int().min(0).optional().describe("Initial supply in base units (default 0)"),
+      treasuryAccountId: z.string().optional().describe("Treasury (defaults to payer)"),
+      adminKey: z.string().optional().describe("Admin public key (enables future updates)"),
+      supplyKey: z.string().optional().describe("Supply public key (enables mint/burn)"),
+      supplyType: z.enum(["finite", "infinite"]).optional().describe("Default infinite"),
+      maxSupply: z.number().int().positive().optional().describe("Required if supplyType=finite"),
+      memo: z.string().optional(),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const treasury = AccountId.fromString(a.treasuryAccountId ?? ctx.payer(a.payerAccountId).toString());
+      const tx = new TokenCreateTransaction()
+        .setTokenName(a.name)
+        .setTokenSymbol(a.symbol)
+        .setTokenType(TokenType.FungibleCommon)
+        .setDecimals(a.decimals ?? 0)
+        .setInitialSupply(a.initialSupply ?? 0)
+        .setTreasuryAccountId(treasury)
+        .setSupplyType(a.supplyType === "finite" ? TokenSupplyType.Finite : TokenSupplyType.Infinite);
+      if (a.maxSupply != null) tx.setMaxSupply(a.maxSupply);
+      const admin = maybeKey(a.adminKey);
+      if (admin) tx.setAdminKey(admin);
+      const supply = maybeKey(a.supplyKey);
+      if (supply) tx.setSupplyKey(supply);
+      if (a.memo) tx.setTokenMemo(a.memo);
+      return ctx.buildAndRender(
+        tx,
+        `Create fungible token ${a.name} (${a.symbol}) · treasury ${treasury} · supply ${a.initialSupply ?? 0}`,
+        a.payerAccountId,
+      );
+    },
+  );
+
+  register(
+    "hedera_create_nft_collection",
+    "Build (unsigned) a new non-fungible token collection (HTS). A supply key is required to mint.",
+    {
+      name: z.string(),
+      symbol: z.string(),
+      treasuryAccountId: z.string().optional(),
+      adminKey: z.string().optional(),
+      supplyKey: z.string().describe("Supply public key — required to mint NFTs"),
+      maxSupply: z.number().int().positive().optional(),
+      memo: z.string().optional(),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const treasury = AccountId.fromString(a.treasuryAccountId ?? ctx.payer(a.payerAccountId).toString());
+      const tx = new TokenCreateTransaction()
+        .setTokenName(a.name)
+        .setTokenSymbol(a.symbol)
+        .setTokenType(TokenType.NonFungibleUnique)
+        .setDecimals(0)
+        .setInitialSupply(0)
+        .setTreasuryAccountId(treasury)
+        .setSupplyType(a.maxSupply != null ? TokenSupplyType.Finite : TokenSupplyType.Infinite)
+        .setSupplyKey(PublicKey.fromString(a.supplyKey));
+      if (a.maxSupply != null) tx.setMaxSupply(a.maxSupply);
+      const admin = maybeKey(a.adminKey);
+      if (admin) tx.setAdminKey(admin);
+      if (a.memo) tx.setTokenMemo(a.memo);
+      return ctx.buildAndRender(
+        tx,
+        `Create NFT collection ${a.name} (${a.symbol}) · treasury ${treasury}`,
+        a.payerAccountId,
+      );
+    },
+  );
+
+  register(
+    "hedera_mint_fungible",
+    "Build (unsigned) a mint of additional fungible token supply.",
+    {
+      tokenId: z.string(),
+      amount: z.number().int().positive().describe("Amount in base units"),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new TokenMintTransaction().setTokenId(TokenId.fromString(a.tokenId)).setAmount(a.amount);
+      return ctx.buildAndRender(tx, `Mint ${a.amount} of ${a.tokenId}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_mint_nft",
+    "Build (unsigned) a mint of one or more NFTs with metadata (e.g. IPFS CIDs).",
+    {
+      tokenId: z.string(),
+      metadata: z.array(z.string()).min(1).describe("Per-NFT metadata strings (≤100 bytes each)"),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const meta = a.metadata.map((m: string) => Buffer.from(m));
+      const tx = new TokenMintTransaction().setTokenId(TokenId.fromString(a.tokenId)).setMetadata(meta);
+      return ctx.buildAndRender(tx, `Mint ${meta.length} NFT(s) into ${a.tokenId}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_burn_token",
+    "Build (unsigned) a burn of fungible amount or specific NFT serials.",
+    {
+      tokenId: z.string(),
+      amount: z.number().int().positive().optional().describe("Fungible amount to burn"),
+      serials: z.array(z.number().int().positive()).optional().describe("NFT serials to burn"),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new TokenBurnTransaction().setTokenId(TokenId.fromString(a.tokenId));
+      if (a.amount != null) tx.setAmount(a.amount);
+      if (a.serials?.length) tx.setSerials(a.serials);
+      return ctx.buildAndRender(
+        tx,
+        `Burn ${a.serials?.length ? `serials ${a.serials.join(",")}` : `${a.amount}`} of ${a.tokenId}`,
+        a.payerAccountId,
+      );
+    },
+  );
+
+  register(
+    "hedera_transfer_token",
+    "Build (unsigned) a fungible token transfer between two accounts.",
+    {
+      tokenId: z.string(),
+      fromAccountId: z.string().optional().describe("Sender (defaults to payer)"),
+      toAccountId: z.string(),
+      amount: z.number().int().positive().describe("Amount in base units"),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const token = TokenId.fromString(a.tokenId);
+      const from = AccountId.fromString(a.fromAccountId ?? ctx.payer(a.payerAccountId).toString());
+      const to = AccountId.fromString(a.toAccountId);
+      const tx = new TransferTransaction()
+        .addTokenTransfer(token, from, -a.amount)
+        .addTokenTransfer(token, to, a.amount);
+      return ctx.buildAndRender(tx, `Transfer ${a.amount} of ${a.tokenId} · ${from} → ${to}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_transfer_nft",
+    "Build (unsigned) an NFT transfer of a specific serial between two accounts.",
+    {
+      tokenId: z.string(),
+      serial: z.number().int().positive(),
+      fromAccountId: z.string().optional().describe("Current owner (defaults to payer)"),
+      toAccountId: z.string(),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const nftId = new NftId(TokenId.fromString(a.tokenId), a.serial);
+      const from = AccountId.fromString(a.fromAccountId ?? ctx.payer(a.payerAccountId).toString());
+      const to = AccountId.fromString(a.toAccountId);
+      const tx = new TransferTransaction().addNftTransfer(nftId, from, to);
+      return ctx.buildAndRender(tx, `Transfer NFT ${a.tokenId}#${a.serial} · ${from} → ${to}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_associate_token",
+    "Build (unsigned) a token association so an account can hold the given token(s).",
+    {
+      accountId: z.string(),
+      tokenIds: z.array(z.string()).min(1),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new TokenAssociateTransaction()
+        .setAccountId(AccountId.fromString(a.accountId))
+        .setTokenIds(a.tokenIds.map((t: string) => TokenId.fromString(t)));
+      return ctx.buildAndRender(tx, `Associate ${a.accountId} ↔ ${a.tokenIds.join(", ")}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_dissociate_token",
+    "Build (unsigned) a token dissociation.",
+    {
+      accountId: z.string(),
+      tokenIds: z.array(z.string()).min(1),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new TokenDissociateTransaction()
+        .setAccountId(AccountId.fromString(a.accountId))
+        .setTokenIds(a.tokenIds.map((t: string) => TokenId.fromString(t)));
+      return ctx.buildAndRender(tx, `Dissociate ${a.accountId} ↔ ${a.tokenIds.join(", ")}`, a.payerAccountId);
+    },
+  );
+
+  const freezeLike: Array<[string, string, (t: TokenId, acc: AccountId) => any]> = [
+    ["hedera_freeze_token_account", "Freeze an account for a token (blocks transfers)", (t, acc) => new TokenFreezeTransaction().setTokenId(t).setAccountId(acc)],
+    ["hedera_unfreeze_token_account", "Unfreeze an account for a token", (t, acc) => new TokenUnfreezeTransaction().setTokenId(t).setAccountId(acc)],
+    ["hedera_grant_kyc", "Grant KYC to an account for a token", (t, acc) => new TokenGrantKycTransaction().setTokenId(t).setAccountId(acc)],
+    ["hedera_revoke_kyc", "Revoke KYC from an account for a token", (t, acc) => new TokenRevokeKycTransaction().setTokenId(t).setAccountId(acc)],
+  ];
+  for (const [name, desc, make] of freezeLike) {
+    register(
+      name,
+      `Build (unsigned): ${desc}.`,
+      { tokenId: z.string(), accountId: z.string(), payerAccountId: z.string().optional() },
+      async (a) => {
+        const tx = make(TokenId.fromString(a.tokenId), AccountId.fromString(a.accountId));
+        return ctx.buildAndRender(tx, `${desc} · ${a.tokenId} / ${a.accountId}`, a.payerAccountId);
+      },
+    );
+  }
+
+  register(
+    "hedera_pause_token",
+    "Build (unsigned) a token pause (halts all transfers of the token).",
+    { tokenId: z.string(), payerAccountId: z.string().optional() },
+    async (a) => {
+      const tx = new TokenPauseTransaction().setTokenId(TokenId.fromString(a.tokenId));
+      return ctx.buildAndRender(tx, `Pause token ${a.tokenId}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_unpause_token",
+    "Build (unsigned) a token unpause.",
+    { tokenId: z.string(), payerAccountId: z.string().optional() },
+    async (a) => {
+      const tx = new TokenUnpauseTransaction().setTokenId(TokenId.fromString(a.tokenId));
+      return ctx.buildAndRender(tx, `Unpause token ${a.tokenId}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_wipe_token",
+    "Build (unsigned) a wipe of fungible amount or NFT serials from an account.",
+    {
+      tokenId: z.string(),
+      accountId: z.string(),
+      amount: z.number().int().positive().optional(),
+      serials: z.array(z.number().int().positive()).optional(),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new TokenWipeTransaction()
+        .setTokenId(TokenId.fromString(a.tokenId))
+        .setAccountId(AccountId.fromString(a.accountId));
+      if (a.amount != null) tx.setAmount(a.amount);
+      if (a.serials?.length) tx.setSerials(a.serials);
+      return ctx.buildAndRender(tx, `Wipe from ${a.accountId} · token ${a.tokenId}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_delete_token",
+    "Build (unsigned) a token deletion (requires the admin key to sign).",
+    { tokenId: z.string(), payerAccountId: z.string().optional() },
+    async (a) => {
+      const tx = new TokenDeleteTransaction().setTokenId(TokenId.fromString(a.tokenId));
+      return ctx.buildAndRender(tx, `Delete token ${a.tokenId}`, a.payerAccountId);
+    },
+  );
+
+  // ---- Mirror Node reads (keyless) ----
+
+  register(
+    "hedera_get_token_info",
+    "Read token info (type, supply, keys, custom fees) from the Mirror Node.",
+    { tokenId: z.string() },
+    async (a) => json(await ctx.mirror(`/api/v1/tokens/${encodeURIComponent(a.tokenId)}`)),
+  );
+
+  register(
+    "hedera_get_nft_info",
+    "Read a specific NFT's info (owner, metadata, serial) from the Mirror Node.",
+    { tokenId: z.string(), serial: z.number().int().positive() },
+    async (a) =>
+      json(await ctx.mirror(`/api/v1/tokens/${encodeURIComponent(a.tokenId)}/nfts/${a.serial}`)),
+  );
+}

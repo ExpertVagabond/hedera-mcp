@@ -29,6 +29,7 @@ import { registerContractTools } from "./tools/contract.js";
 import { registerFileTools } from "./tools/file.js";
 import { registerScheduleTools } from "./tools/schedule.js";
 import { registerNetworkTools } from "./tools/network.js";
+import { registerAnalyticsTools } from "./tools/analytics.js";
 
 const ctx = new HederaCtx();
 
@@ -61,6 +62,7 @@ registerContractTools(register, ctx);
 registerFileTools(register, ctx);
 registerScheduleTools(register, ctx);
 registerNetworkTools(register, ctx);
+registerAnalyticsTools(register, ctx);
 
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();

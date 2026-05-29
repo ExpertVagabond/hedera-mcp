@@ -6,7 +6,7 @@
 [![npm](https://img.shields.io/npm/v/@purplesquirrel/hedera-mcp?color=3ec6a8&label=npm)](https://www.npmjs.com/package/@purplesquirrel/hedera-mcp)
 [![license](https://img.shields.io/badge/license-MIT-555)](./LICENSE)
 
-**Comprehensive Model Context Protocol server for Hedera (Hashgraph).** Full coverage of every core Hedera service — Account, Token (HTS), Consensus (HCS), Smart Contract (EVM), File, Schedule, and Network — exposed as **51 MCP tools** any AI agent (Claude, Cursor, etc.) can call.
+**Comprehensive Model Context Protocol server for Hedera (Hashgraph).** Full coverage of every core Hedera service — Account, Token (HTS), Consensus (HCS), Smart Contract (EVM), File, Schedule, and Network — exposed as **73 MCP tools** any AI agent (Claude, Cursor, etc.) can call.
 
 > **Build-only. Never holds keys.** Reads hit the public Mirror Node REST API (no auth). Writes return an *unsigned, frozen* transaction (base64) for you to sign and submit with your own wallet/SDK/CLI. This server never sees a private key and never executes anything.
 
@@ -93,21 +93,29 @@ hedera_decode_transaction { transactionBase64: "<bytes>" }
 → { type: "TokenCreateTransaction", transactionId, nodeAccountIds, maxTransactionFee, ... }
 ```
 
-## Tool catalog (51)
+## Tool catalog (73)
 
 **Account (8):** create_account · transfer_hbar · update_account · delete_account · approve_hbar_allowance · get_account_info · get_account_balance · get_account_nfts
 
-**Token / HTS (18):** create_fungible_token · create_nft_collection · mint_fungible · mint_nft · burn_token · transfer_token · transfer_nft · associate_token · dissociate_token · freeze_token_account · unfreeze_token_account · grant_kyc · revoke_kyc · pause_token · unpause_token · wipe_token · delete_token · get_token_info · get_nft_info
+**Token / HTS (23):** create_fungible_token · create_nft_collection · mint_fungible · mint_nft · burn_token · transfer_token · transfer_nft · associate_token · dissociate_token · freeze_token_account · unfreeze_token_account · grant_kyc · revoke_kyc · pause_token · unpause_token · wipe_token · delete_token · update_token · token_airdrop · reject_token · approve_token_allowance · approve_nft_allowance · get_token_info · get_nft_info
 
 **Consensus / HCS (6):** create_topic · submit_message · update_topic · delete_topic · get_topic_info · get_topic_messages
 
-**Smart contract / EVM (4):** deploy_contract · execute_contract · query_contract (eth_call) · get_contract_info
+**Smart contract / EVM (6):** deploy_contract · execute_contract · update_contract · delete_contract · query_contract (eth_call) · get_contract_info
 
-**File (4):** create_file · append_file · delete_file · get_file_info
+**File (4):** create_file · append_file · update_file · delete_file
 
 **Schedule (4):** create_schedule · sign_schedule · delete_schedule · get_schedule_info
 
-**Network / utility (6):** get_transaction · get_network_nodes · get_exchange_rate · get_network_supply · get_network_fees · decode_transaction
+**Network / utility (7):** prng · get_transaction · get_network_nodes · get_exchange_rate · get_network_supply · get_network_fees · decode_transaction
+
+**Analytics (Mirror Node reads, 14):** get_block · get_blocks · get_account_transactions · get_token_balances · get_token_nfts · get_nft_history · get_account_allowances · get_account_token_allowances · get_account_nft_allowances · get_contract_results · get_contract_state · get_network_stake · search_accounts_by_pubkey · get_account_by_evm
+
+## Verification
+
+- `npm run lint` / `npm run build` — clean against `@hashgraph/sdk` 2.81.0
+- `node test-battle.mjs` — **72/73** build + read tools pass against live testnet
+- `node test-live.mjs` — **10/10 write paths executed on testnet** (token create+mint, NFT create+mint, topic+message, file, scheduled transfer, transfer, PRNG), Mirror Node-verified
 
 ## Development
 

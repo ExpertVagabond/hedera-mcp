@@ -1,6 +1,6 @@
 /** Network/utility tools: transactions, nodes, fees, supply, exchange rate, and tx decoding. */
 import { z } from "zod";
-import { Transaction } from "@hashgraph/sdk";
+import { PrngTransaction, Transaction } from "@hashgraph/sdk";
 import type { Register } from "../types.js";
 import { HederaCtx, json, resolveTxType } from "../context.js";
 
@@ -42,6 +42,20 @@ export function registerNetworkTools(register: Register, ctx: HederaCtx): void {
     "Read the current network fee schedule from the Mirror Node.",
     {},
     async () => json(await ctx.mirror(`/api/v1/network/fees`)),
+  );
+
+  register(
+    "hedera_prng",
+    "Build (unsigned) a pseudo-random number generation transaction (native on-chain RNG). Optionally bound to [0, range).",
+    {
+      range: z.number().int().positive().optional().describe("If set, result is a uint in [0, range)"),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new PrngTransaction();
+      if (a.range != null) tx.setRange(a.range);
+      return ctx.buildAndRender(tx, `Generate random number${a.range != null ? ` in [0, ${a.range})` : ""}`, a.payerAccountId);
+    },
   );
 
   register(

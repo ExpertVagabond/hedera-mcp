@@ -1,9 +1,11 @@
 /** Token service (HTS): create, mint, burn, transfer, associate, freeze, KYC, pause, wipe, delete + reads. */
 import { z } from "zod";
 import {
+  AccountAllowanceApproveTransaction,
   AccountId,
   NftId,
   PublicKey,
+  TokenAirdropTransaction,
   TokenAssociateTransaction,
   TokenBurnTransaction,
   TokenCreateTransaction,
@@ -14,11 +16,13 @@ import {
   TokenId,
   TokenMintTransaction,
   TokenPauseTransaction,
+  TokenRejectTransaction,
   TokenRevokeKycTransaction,
   TokenSupplyType,
   TokenType,
   TokenUnfreezeTransaction,
   TokenUnpauseTransaction,
+  TokenUpdateTransaction,
   TokenWipeTransaction,
   TransferTransaction,
 } from "@hashgraph/sdk";
@@ -293,6 +297,113 @@ export function registerTokenTools(register: Register, ctx: HederaCtx): void {
     async (a) => {
       const tx = new TokenDeleteTransaction().setTokenId(TokenId.fromString(a.tokenId));
       return ctx.buildAndRender(tx, `Delete token ${a.tokenId}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_update_token",
+    "Build (unsigned) an update to a token's name, symbol, memo, or treasury (requires the admin key to sign).",
+    {
+      tokenId: z.string(),
+      name: z.string().optional(),
+      symbol: z.string().optional(),
+      memo: z.string().optional(),
+      treasuryAccountId: z.string().optional(),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new TokenUpdateTransaction().setTokenId(TokenId.fromString(a.tokenId));
+      if (a.name != null) tx.setTokenName(a.name);
+      if (a.symbol != null) tx.setTokenSymbol(a.symbol);
+      if (a.memo != null) tx.setTokenMemo(a.memo);
+      if (a.treasuryAccountId) tx.setTreasuryAccountId(AccountId.fromString(a.treasuryAccountId));
+      return ctx.buildAndRender(tx, `Update token ${a.tokenId}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_token_airdrop",
+    "Build (unsigned) a fungible-token airdrop (HIP-904) — auto-associates recipients without prior opt-in.",
+    {
+      tokenId: z.string(),
+      fromAccountId: z.string().optional().describe("Sender (defaults to payer)"),
+      toAccountId: z.string(),
+      amount: z.number().int().positive().describe("Amount in base units"),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const token = TokenId.fromString(a.tokenId);
+      const from = AccountId.fromString(a.fromAccountId ?? ctx.payer(a.payerAccountId).toString());
+      const to = AccountId.fromString(a.toAccountId);
+      const tx = new TokenAirdropTransaction()
+        .addTokenTransfer(token, from, -a.amount)
+        .addTokenTransfer(token, to, a.amount);
+      return ctx.buildAndRender(tx, `Airdrop ${a.amount} of ${a.tokenId} → ${to}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_reject_token",
+    "Build (unsigned) a token rejection (HIP-904) — returns an unwanted token to its treasury.",
+    {
+      ownerAccountId: z.string().optional().describe("Holder rejecting (defaults to payer)"),
+      tokenId: z.string(),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const owner = AccountId.fromString(a.ownerAccountId ?? ctx.payer(a.payerAccountId).toString());
+      const tx = new TokenRejectTransaction().setOwnerId(owner).addTokenId(TokenId.fromString(a.tokenId));
+      return ctx.buildAndRender(tx, `Reject token ${a.tokenId} (owner ${owner})`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_approve_token_allowance",
+    "Build (unsigned) a fungible-token spending allowance for a spender.",
+    {
+      tokenId: z.string(),
+      ownerAccountId: z.string().optional().describe("Owner (defaults to payer)"),
+      spenderAccountId: z.string(),
+      amount: z.number().int().positive().describe("Allowance amount in base units"),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const owner = AccountId.fromString(a.ownerAccountId ?? ctx.payer(a.payerAccountId).toString());
+      const tx = new AccountAllowanceApproveTransaction().approveTokenAllowance(
+        TokenId.fromString(a.tokenId),
+        owner,
+        AccountId.fromString(a.spenderAccountId),
+        a.amount,
+      );
+      return ctx.buildAndRender(
+        tx,
+        `Approve ${a.amount} of ${a.tokenId} · ${owner} → ${a.spenderAccountId}`,
+        a.payerAccountId,
+      );
+    },
+  );
+
+  register(
+    "hedera_approve_nft_allowance",
+    "Build (unsigned) an NFT allowance for all serials of a collection (approve-for-all).",
+    {
+      tokenId: z.string(),
+      ownerAccountId: z.string().optional().describe("Owner (defaults to payer)"),
+      spenderAccountId: z.string(),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const owner = AccountId.fromString(a.ownerAccountId ?? ctx.payer(a.payerAccountId).toString());
+      const tx = new AccountAllowanceApproveTransaction().approveTokenNftAllowanceAllSerials(
+        TokenId.fromString(a.tokenId),
+        owner,
+        AccountId.fromString(a.spenderAccountId),
+      );
+      return ctx.buildAndRender(
+        tx,
+        `Approve all NFTs of ${a.tokenId} · ${owner} → ${a.spenderAccountId}`,
+        a.payerAccountId,
+      );
     },
   );
 

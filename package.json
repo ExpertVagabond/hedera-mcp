@@ -1,6 +1,6 @@
 {
   "name": "@purplesquirrel/hedera-mcp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "mcpName": "io.github.ExpertVagabond/hedera-mcp",
   "description": "Comprehensive MCP server for Hedera (Hashgraph) — full coverage of Account, Token (HTS), Consensus (HCS), Smart Contract (EVM), File, Schedule, and Network services. Reads via Mirror Node (keyless); writes are build-only (returns unsigned serialized transactions). Never holds keys.",
   "type": "module",

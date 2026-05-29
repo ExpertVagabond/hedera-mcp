@@ -1,9 +1,12 @@
 /** Smart contract service (EVM). Writes are build-only; reads use Mirror Node eth_call. */
 import { z } from "zod";
 import {
+  AccountId,
   ContractCreateTransaction,
+  ContractDeleteTransaction,
   ContractExecuteTransaction,
   ContractId,
+  ContractUpdateTransaction,
   FileId,
   Hbar,
 } from "@hashgraph/sdk";
@@ -59,6 +62,37 @@ export function registerContractTools(register: Register, ctx: HederaCtx): void 
         .setFunctionParameters(Buffer.from(a.functionParametersBase64, "base64"));
       if (a.payableAmountHbar != null) tx.setPayableAmount(new Hbar(a.payableAmountHbar));
       return ctx.buildAndRender(tx, `Execute contract ${a.contractId} · gas ${a.gas}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_update_contract",
+    "Build (unsigned) an update to a contract's memo or admin key (requires admin key to sign).",
+    {
+      contractId: z.string(),
+      memo: z.string().optional(),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new ContractUpdateTransaction().setContractId(ContractId.fromString(a.contractId));
+      if (a.memo != null) tx.setContractMemo(a.memo);
+      return ctx.buildAndRender(tx, `Update contract ${a.contractId}`, a.payerAccountId);
+    },
+  );
+
+  register(
+    "hedera_delete_contract",
+    "Build (unsigned) a contract deletion, transferring any balance to an account.",
+    {
+      contractId: z.string(),
+      transferAccountId: z.string().describe("Account that receives the contract's remaining balance"),
+      payerAccountId: z.string().optional(),
+    },
+    async (a) => {
+      const tx = new ContractDeleteTransaction()
+        .setContractId(ContractId.fromString(a.contractId))
+        .setTransferAccountId(AccountId.fromString(a.transferAccountId));
+      return ctx.buildAndRender(tx, `Delete contract ${a.contractId}`, a.payerAccountId);
     },
   );
 

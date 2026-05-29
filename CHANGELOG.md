@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.0
+
+Expanded from 51 to **73 tools** and battle-tested end-to-end.
+
+- **+22 tools:** token update / airdrop (HIP-904) / reject / token & NFT allowances; contract update / delete; file update; PRNG; and a 14-tool analytics layer (blocks, account transactions, token balances & NFTs, NFT history, crypto/token/NFT allowances, contract results & state, network stake, public-key & EVM-address lookups).
+- **Fixed:** `create_schedule` now schedules an (unfrozen) transfer; removed `get_file_info` (file info requires a paid query, incompatible with keyless reads); minified-SDK transaction type labels.
+- **Battle tested:** `test-battle.mjs` — 72/73 build+read tools pass against live testnet (1 skip: contract eth_call needs a known ABI). `test-live.mjs` — **10/10 write paths executed on testnet** (token create+mint, NFT create+mint, topic+message, file, scheduled transfer, hbar transfer, PRNG), each verified via Mirror Node.
+
 ## 0.1.0
 
 Initial release — comprehensive build-only MCP server for Hedera (Hashgraph).

@@ -1,12 +1,14 @@
-/** Scheduled transactions: wrap a build-only inner transaction for multi-party signing. */
+/** Scheduled transactions: wrap an inner transfer for multi-party / threshold signing. */
 import { z } from "zod";
 import {
+  AccountId,
+  Hbar,
   PublicKey,
   ScheduleCreateTransaction,
   ScheduleDeleteTransaction,
   ScheduleId,
   ScheduleSignTransaction,
-  Transaction,
+  TransferTransaction,
 } from "@hashgraph/sdk";
 import type { Register } from "../types.js";
 import { HederaCtx, json } from "../context.js";
@@ -14,23 +16,31 @@ import { HederaCtx, json } from "../context.js";
 export function registerScheduleTools(register: Register, ctx: HederaCtx): void {
   register(
     "hedera_create_schedule",
-    "Build (unsigned) a scheduled transaction wrapping an inner transaction (provided as base64 bytes). Enables multi-party / threshold signing before execution.",
+    "Build (unsigned) a scheduled HBAR transfer — wraps an inner transfer so multiple parties can sign before it executes.",
     {
-      scheduledTransactionBase64: z
-        .string()
-        .describe("Inner transaction bytes (base64) produced by another build tool"),
+      toAccountId: z.string().describe("Recipient of the scheduled transfer"),
+      amountHbar: z.number().positive().describe("Amount in HBAR"),
+      fromAccountId: z.string().optional().describe("Sender (defaults to payer)"),
       adminKey: z.string().optional().describe("Admin public key (enables schedule deletion)"),
       schedulePayerAccountId: z.string().optional().describe("Account that pays when the schedule executes"),
       memo: z.string().optional(),
       payerAccountId: z.string().optional(),
     },
     async (a) => {
-      const inner = Transaction.fromBytes(Buffer.from(a.scheduledTransactionBase64, "base64"));
+      const from = AccountId.fromString(a.fromAccountId ?? ctx.payer(a.payerAccountId).toString());
+      // Inner transaction MUST be unfrozen for ScheduleCreate to accept it.
+      const inner = new TransferTransaction()
+        .addHbarTransfer(from, new Hbar(-a.amountHbar))
+        .addHbarTransfer(AccountId.fromString(a.toAccountId), new Hbar(a.amountHbar));
       const tx = new ScheduleCreateTransaction().setScheduledTransaction(inner);
       if (a.adminKey) tx.setAdminKey(PublicKey.fromString(a.adminKey));
       if (a.schedulePayerAccountId) tx.setPayerAccountId(a.schedulePayerAccountId);
       if (a.memo) tx.setScheduleMemo(a.memo);
-      return ctx.buildAndRender(tx, `Create schedule wrapping ${inner.constructor.name}`, a.payerAccountId);
+      return ctx.buildAndRender(
+        tx,
+        `Create scheduled transfer ${a.amountHbar} ℏ · ${from} → ${a.toAccountId}`,
+        a.payerAccountId,
+      );
     },
   );
 

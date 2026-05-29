@@ -2,6 +2,10 @@
 
 ![hedera-mcp](./logo.svg)
 
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.ExpertVagabond%2Fhedera--mcp-3ec6a8)](https://registry.modelcontextprotocol.io/v0/servers?search=hedera-mcp)
+[![npm](https://img.shields.io/npm/v/@purplesquirrel/hedera-mcp?color=3ec6a8&label=npm)](https://www.npmjs.com/package/@purplesquirrel/hedera-mcp)
+[![license](https://img.shields.io/badge/license-MIT-555)](./LICENSE)
+
 **Comprehensive Model Context Protocol server for Hedera (Hashgraph).** Full coverage of every core Hedera service — Account, Token (HTS), Consensus (HCS), Smart Contract (EVM), File, Schedule, and Network — exposed as **51 MCP tools** any AI agent (Claude, Cursor, etc.) can call.
 
 > **Build-only. Never holds keys.** Reads hit the public Mirror Node REST API (no auth). Writes return an *unsigned, frozen* transaction (base64) for you to sign and submit with your own wallet/SDK/CLI. This server never sees a private key and never executes anything.

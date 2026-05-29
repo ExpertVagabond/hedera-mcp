@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- `create_fungible_token` now supports the full authority key set — **freeze, KYC, pause, and wipe** keys (in addition to admin + supply) — enabling the complete token lifecycle.
+- **Battle mode** (`test-battle-live.mjs`): **31/31 operations executed on testnet** across two accounts — full token lifecycle (create-with-all-keys, mint, associate, KYC, transfer, freeze/unfreeze, pause/unpause, allowance, update, airdrop, wipe, burn, delete), NFT (create, mint, associate, transfer, allowance), topic (create/submit/update), file (create/append/update), a scheduled transfer requiring a second signer, PRNG, and hbar transfer — all Mirror Node-verified.
+
 ## 0.2.0
 
 Expanded from 51 to **73 tools** and battle-tested end-to-end.

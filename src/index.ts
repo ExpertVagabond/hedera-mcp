@@ -35,7 +35,7 @@ const ctx = new HederaCtx();
 
 const server = new McpServer({
   name: "hedera-mcp",
-  version: "0.2.0",
+  version: "0.3.0",
 });
 
 let toolCount = 0;

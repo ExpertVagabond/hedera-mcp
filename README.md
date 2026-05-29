@@ -115,7 +115,8 @@ hedera_decode_transaction { transactionBase64: "<bytes>" }
 
 - `npm run lint` / `npm run build` — clean against `@hashgraph/sdk` 2.81.0
 - `node test-battle.mjs` — **72/73** build + read tools pass against live testnet
-- `node test-live.mjs` — **10/10 write paths executed on testnet** (token create+mint, NFT create+mint, topic+message, file, scheduled transfer, transfer, PRNG), Mirror Node-verified
+- `node test-live.mjs` — **10/10 write paths executed on testnet**, Mirror Node-verified
+- `node test-battle-live.mjs` — **battle mode: 31/31 operations on testnet** across two accounts (full token lifecycle incl. freeze/KYC/pause/wipe, NFT, topic, file, scheduled transfer requiring a 2nd signer, PRNG), Mirror Node-verified
 
 ## Development
 

@@ -45,6 +45,10 @@ export function registerTokenTools(register: Register, ctx: HederaCtx): void {
       treasuryAccountId: z.string().optional().describe("Treasury (defaults to payer)"),
       adminKey: z.string().optional().describe("Admin public key (enables future updates)"),
       supplyKey: z.string().optional().describe("Supply public key (enables mint/burn)"),
+      freezeKey: z.string().optional().describe("Freeze public key (enables freeze/unfreeze)"),
+      kycKey: z.string().optional().describe("KYC public key (enables grant/revoke KYC)"),
+      pauseKey: z.string().optional().describe("Pause public key (enables pause/unpause)"),
+      wipeKey: z.string().optional().describe("Wipe public key (enables wipe)"),
       supplyType: z.enum(["finite", "infinite"]).optional().describe("Default infinite"),
       maxSupply: z.number().int().positive().optional().describe("Required if supplyType=finite"),
       memo: z.string().optional(),
@@ -65,6 +69,14 @@ export function registerTokenTools(register: Register, ctx: HederaCtx): void {
       if (admin) tx.setAdminKey(admin);
       const supply = maybeKey(a.supplyKey);
       if (supply) tx.setSupplyKey(supply);
+      const freeze = maybeKey(a.freezeKey);
+      if (freeze) tx.setFreezeKey(freeze);
+      const kyc = maybeKey(a.kycKey);
+      if (kyc) tx.setKycKey(kyc);
+      const pause = maybeKey(a.pauseKey);
+      if (pause) tx.setPauseKey(pause);
+      const wipe = maybeKey(a.wipeKey);
+      if (wipe) tx.setWipeKey(wipe);
       if (a.memo) tx.setTokenMemo(a.memo);
       return ctx.buildAndRender(
         tx,

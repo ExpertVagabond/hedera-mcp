@@ -8,6 +8,8 @@
 <meta property="og:title" content="hedera-mcp — 73 tools for Hedera">
 <meta property="og:description" content="Build-only MCP server for Hedera. Full coverage of every core service + a Mirror Node analytics layer. Never holds keys. Verified live on testnet.">
 <meta property="og:type" content="website">
+<link rel="icon" type="image/png" href="assets/hedera-mark.png">
+<link rel="apple-touch-icon" href="assets/hedera-mark.png">
 <style>
   :root {
     --bg:#070b0a; --ink:#e7f4ef; --muted:#7a8a86; --accent:#3ec6a8;
@@ -58,11 +60,7 @@
 <body>
 <div class="wrap">
   <header>
-    <svg class="mark" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <g stroke="#3ec6a8" stroke-width="6" fill="none"><path d="M55 55 L130 100 L55 145"/></g>
-      <circle cx="55" cy="55" r="11" fill="#e8fff8"/><circle cx="55" cy="145" r="11" fill="#e8fff8"/>
-      <circle cx="130" cy="100" r="13" fill="#3ec6a8"/>
-    </svg>
+    <img class="mark" src="assets/hedera-mark.png" alt="Hedera">
     <div>
       <h1>hedera<span class="mono">-mcp</span></h1>
       <p class="sub">Model Context Protocol server for Hedera (Hashgraph)</p>
@@ -133,12 +131,15 @@
   </section>
 
   <footer>
+    <p style="display:flex;align-items:center;gap:10px;margin:0 0 14px;">
+      Built for <img src="assets/hedera-logo-white.png" alt="Hedera" style="height:20px">
+    </p>
     <div class="links">
       <a href="https://github.com/ExpertVagabond/hedera-mcp">GitHub</a>
       <a href="https://www.npmjs.com/package/@purplesquirrel/hedera-mcp">npm</a>
       <a href="https://registry.modelcontextprotocol.io/v0/servers?search=hedera-mcp">MCP Registry</a>
     </div>
-    <p>io.github.ExpertVagabond/hedera-mcp · MIT · built on @hashgraph/sdk + @modelcontextprotocol/sdk</p>
+    <p>io.github.ExpertVagabond/hedera-mcp · MIT · built on @hashgraph/sdk + @modelcontextprotocol/sdk · community tool, not affiliated with Hedera Hashgraph, LLC.</p>
   </footer>
 </div>
 </body>

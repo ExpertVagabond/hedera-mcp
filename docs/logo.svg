@@ -13,5 +13,5 @@
     <circle cx="140" cy="100" r="11" fill="#3ec6a8"/>
   </g>
   <text x="190" y="92" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="46" font-weight="700" fill="#ffffff">hedera-mcp</text>
-  <text x="192" y="132" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20" fill="#7a8a86">51 tools · build-only · never holds keys</text>
+  <text x="192" y="132" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20" fill="#7a8a86">73 tools · build-only · never holds keys</text>
 </svg>

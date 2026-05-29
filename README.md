@@ -30,7 +30,17 @@ The official Hedera Agent Kit ships a preconfigured MCP server, but its tool sur
 
 This mirrors the posture of [goat-network-mcp](https://github.com/ExpertVagabond/goat-network-mcp): safe to run anywhere, safe to give to an autonomous agent.
 
+Published on npm and the [MCP Registry](https://registry.modelcontextprotocol.io) as `io.github.ExpertVagabond/hedera-mcp`.
+
 ## Install
+
+Run directly with npx (no clone needed):
+
+```bash
+npx @purplesquirrel/hedera-mcp
+```
+
+Or from source:
 
 ```bash
 npm install
@@ -43,8 +53,8 @@ npm run build
 {
   "mcpServers": {
     "hedera": {
-      "command": "node",
-      "args": ["/absolute/path/to/hedera-mcp/dist/index.js"],
+      "command": "npx",
+      "args": ["-y", "@purplesquirrel/hedera-mcp"],
       "env": {
         "HEDERA_NETWORK": "testnet",
         "HEDERA_OPERATOR_ID": "0.0.1234"

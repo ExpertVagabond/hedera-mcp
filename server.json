@@ -1,0 +1,37 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ExpertVagabond/hedera-mcp",
+  "description": "Build-only Hedera (Hashgraph) MCP — 51 tools across Account, HTS, HCS, EVM, File & Schedule.",
+  "repository": {
+    "url": "https://github.com/ExpertVagabond/hedera-mcp",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@purplesquirrel/hedera-mcp",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "HEDERA_NETWORK",
+          "description": "mainnet | testnet (default) | previewnet",
+          "isRequired": false
+        },
+        {
+          "name": "HEDERA_OPERATOR_ID",
+          "description": "Optional default payer/treasury account id (not a private key)",
+          "isRequired": false
+        },
+        {
+          "name": "HEDERA_MIRROR_URL",
+          "description": "Optional Mirror Node REST base URL override",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}

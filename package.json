@@ -9,7 +9,7 @@
   },
   "files": [
     "dist",
-    "logo.png",
+    "logo.svg",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"

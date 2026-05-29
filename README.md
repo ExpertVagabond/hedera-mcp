@@ -1,5 +1,7 @@
 # hedera-mcp
 
+![hedera-mcp](./logo.svg)
+
 **Comprehensive Model Context Protocol server for Hedera (Hashgraph).** Full coverage of every core Hedera service — Account, Token (HTS), Consensus (HCS), Smart Contract (EVM), File, Schedule, and Network — exposed as **51 MCP tools** any AI agent (Claude, Cursor, etc.) can call.
 
 > **Build-only. Never holds keys.** Reads hit the public Mirror Node REST API (no auth). Writes return an *unsigned, frozen* transaction (base64) for you to sign and submit with your own wallet/SDK/CLI. This server never sees a private key and never executes anything.
@@ -96,10 +98,27 @@ hedera_decode_transaction { transactionBase64: "<bytes>" }
 ## Development
 
 ```bash
-npm run lint     # tsc --noEmit
-npm run build    # compile to dist/
-node test-smoke.mjs   # spawn over MCP stdio, exercise a live read + a build-only write
+npm run lint       # tsc --noEmit
+npm run build      # compile to dist/
+node test-smoke.mjs    # MCP stdio: live Mirror Node read + build-only write + decode
+node demo.mjs          # narrated "developer's first session" walkthrough (build-only)
+node test-execute.mjs  # LIVE testnet submit (needs a throwaway key in .env — see below)
 ```
+
+### Live execution verification
+
+`test-execute.mjs` proves the build-only output is real: the MCP server builds an
+unsigned transaction, the harness signs it with a **throwaway testnet key from `.env`**
+and submits it, then confirms the result independently via Mirror Node. The server
+stays build-only the whole time — only the test harness ever touches a key.
+
+```
+HEDERA_NETWORK=testnet
+HEDERA_OPERATOR_ID=0.0.xxxxxx
+HEDERA_OPERATOR_KEY=302e0201...    # rotate/discard after verifying
+```
+
+Get a free testnet account at [portal.hedera.com](https://portal.hedera.com).
 
 Built on [`@hashgraph/sdk`](https://www.npmjs.com/package/@hashgraph/sdk) and [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk).
 

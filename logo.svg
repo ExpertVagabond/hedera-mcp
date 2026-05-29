@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="200" viewBox="0 0 640 200" role="img" aria-label="hedera-mcp">
+  <rect width="640" height="200" fill="#0a0a0a"/>
+  <!-- hashgraph-style mark: nodes + ordered links -->
+  <g stroke="#3ec6a8" stroke-width="3" fill="none" opacity="0.9">
+    <line x1="60" y1="60" x2="140" y2="100"/>
+    <line x1="60" y1="140" x2="140" y2="100"/>
+    <line x1="140" y1="100" x2="60" y2="60"/>
+    <line x1="140" y1="100" x2="60" y2="140"/>
+  </g>
+  <g fill="#e8fff8">
+    <circle cx="60" cy="60" r="9"/>
+    <circle cx="60" cy="140" r="9"/>
+    <circle cx="140" cy="100" r="11" fill="#3ec6a8"/>
+  </g>
+  <text x="190" y="92" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="46" font-weight="700" fill="#ffffff">hedera-mcp</text>
+  <text x="192" y="132" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="20" fill="#7a8a86">51 tools · build-only · never holds keys</text>
+</svg>

@@ -30,12 +30,13 @@ import { registerFileTools } from "./tools/file.js";
 import { registerScheduleTools } from "./tools/schedule.js";
 import { registerNetworkTools } from "./tools/network.js";
 import { registerAnalyticsTools } from "./tools/analytics.js";
+import { registerResources } from "./resources.js";
 
 const ctx = new HederaCtx();
 
 const server = new McpServer({
   name: "hedera-mcp",
-  version: "0.3.0",
+  version: "0.4.0",
 });
 
 let toolCount = 0;
@@ -63,12 +64,13 @@ registerFileTools(register, ctx);
 registerScheduleTools(register, ctx);
 registerNetworkTools(register, ctx);
 registerAnalyticsTools(register, ctx);
+const resourceCount = registerResources(server, ctx);
 
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
   console.error(
-    `hedera-mcp running — ${toolCount} tools — ${ctx.network.name} ` +
+    `hedera-mcp running — ${toolCount} tools, ${resourceCount} resources — ${ctx.network.name} ` +
       `(mirror ${ctx.network.mirror})` +
       (ctx.operatorId ? ` — default payer ${ctx.operatorId.toString()}` : " — build-only, no default payer"),
   );

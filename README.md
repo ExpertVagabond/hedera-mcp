@@ -111,6 +111,17 @@ hedera_decode_transaction { transactionBase64: "<bytes>" }
 
 **Analytics (Mirror Node reads, 14):** get_block · get_blocks · get_account_transactions · get_token_balances · get_token_nfts · get_nft_history · get_account_allowances · get_account_token_allowances · get_account_nft_allowances · get_contract_results · get_contract_state · get_network_stake · search_accounts_by_pubkey · get_account_by_evm
 
+## Resources (4)
+
+Besides tools, the server exposes addressable, keyless MCP **resources** agents can read by URI:
+
+`hedera://network/exchange-rate` · `hedera://network/supply` · `hedera://account/{accountId}` · `hedera://token/{tokenId}`
+
+## Examples & learning
+
+- [`examples/TUTORIAL.md`](examples/TUTORIAL.md) — **Build on Hedera in 5 prompts** (the certified→shipping learning path)
+- [`examples/agent-demo.md`](examples/agent-demo.md) — wire into Claude Desktop and build by asking; `node examples/agent-sim.mjs` prints a reproducible agent transcript
+
 ## Verification
 
 - `npm run lint` / `npm run build` — clean against `@hashgraph/sdk` 2.81.0

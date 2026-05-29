@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- **MCP resources** (4): `hedera://network/exchange-rate`, `hedera://network/supply`, and templated `hedera://account/{id}` and `hedera://token/{id}` — addressable, keyless state agents can read by URI, alongside the 73 tools.
+- **Custom fees:** `create_fungible_token` accepts an optional fixed HBAR fee + collector; `create_nft_collection` accepts royalty fees (numerator/denominator/fallback/collector).
+- **Examples:** `examples/TUTORIAL.md` (build on Hedera in 5 prompts), `examples/agent-demo.md` + `examples/agent-sim.mjs` (agent-driven walkthrough), `test-contract.mjs` (Solidity E2E), `test-resources.mjs`.
+
 ## 0.3.0
 
 - `create_fungible_token` now supports the full authority key set — **freeze, KYC, pause, and wipe** keys (in addition to admin + supply) — enabling the complete token lifecycle.

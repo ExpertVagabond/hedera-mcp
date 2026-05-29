@@ -3,6 +3,9 @@ import { z } from "zod";
 import {
   AccountAllowanceApproveTransaction,
   AccountId,
+  CustomFixedFee,
+  CustomRoyaltyFee,
+  Hbar,
   NftId,
   PublicKey,
   TokenAirdropTransaction,
@@ -49,6 +52,8 @@ export function registerTokenTools(register: Register, ctx: HederaCtx): void {
       kycKey: z.string().optional().describe("KYC public key (enables grant/revoke KYC)"),
       pauseKey: z.string().optional().describe("Pause public key (enables pause/unpause)"),
       wipeKey: z.string().optional().describe("Wipe public key (enables wipe)"),
+      customFeeHbar: z.number().positive().optional().describe("Optional fixed HBAR fee charged on each transfer"),
+      feeCollectorAccountId: z.string().optional().describe("Account that collects the custom fee (defaults to treasury)"),
       supplyType: z.enum(["finite", "infinite"]).optional().describe("Default infinite"),
       maxSupply: z.number().int().positive().optional().describe("Required if supplyType=finite"),
       memo: z.string().optional(),
@@ -77,6 +82,12 @@ export function registerTokenTools(register: Register, ctx: HederaCtx): void {
       if (pause) tx.setPauseKey(pause);
       const wipe = maybeKey(a.wipeKey);
       if (wipe) tx.setWipeKey(wipe);
+      if (a.customFeeHbar != null) {
+        const collector = AccountId.fromString(a.feeCollectorAccountId ?? treasury.toString());
+        tx.setCustomFees([
+          new CustomFixedFee().setHbarAmount(new Hbar(a.customFeeHbar)).setFeeCollectorAccountId(collector),
+        ]);
+      }
       if (a.memo) tx.setTokenMemo(a.memo);
       return ctx.buildAndRender(
         tx,
@@ -96,6 +107,10 @@ export function registerTokenTools(register: Register, ctx: HederaCtx): void {
       adminKey: z.string().optional(),
       supplyKey: z.string().describe("Supply public key — required to mint NFTs"),
       maxSupply: z.number().int().positive().optional(),
+      royaltyNumerator: z.number().int().positive().optional().describe("Royalty fee numerator (use with denominator)"),
+      royaltyDenominator: z.number().int().positive().optional().describe("Royalty fee denominator"),
+      royaltyFallbackHbar: z.number().positive().optional().describe("Fallback HBAR fee when no fungible value is exchanged"),
+      royaltyCollectorAccountId: z.string().optional().describe("Royalty collector (defaults to treasury)"),
       memo: z.string().optional(),
       payerAccountId: z.string().optional(),
     },
@@ -113,6 +128,17 @@ export function registerTokenTools(register: Register, ctx: HederaCtx): void {
       if (a.maxSupply != null) tx.setMaxSupply(a.maxSupply);
       const admin = maybeKey(a.adminKey);
       if (admin) tx.setAdminKey(admin);
+      if (a.royaltyNumerator != null && a.royaltyDenominator != null) {
+        const collector = AccountId.fromString(a.royaltyCollectorAccountId ?? treasury.toString());
+        const royalty = new CustomRoyaltyFee()
+          .setNumerator(a.royaltyNumerator)
+          .setDenominator(a.royaltyDenominator)
+          .setFeeCollectorAccountId(collector);
+        if (a.royaltyFallbackHbar != null) {
+          royalty.setFallbackFee(new CustomFixedFee().setHbarAmount(new Hbar(a.royaltyFallbackHbar)));
+        }
+        tx.setCustomFees([royalty]);
+      }
       if (a.memo) tx.setTokenMemo(a.memo);
       return ctx.buildAndRender(
         tx,

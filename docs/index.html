@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>hedera-mcp — 73-tool MCP server for Hedera (Hashgraph)</title>
+<meta name="description" content="Build-only Model Context Protocol server for Hedera (Hashgraph). 73 tools across Account, HTS, HCS, EVM, File, Schedule, and analytics. Keyless Mirror Node reads; unsigned-transaction writes. Never holds keys. Battle-tested on testnet.">
+<meta property="og:title" content="hedera-mcp — 73 tools for Hedera">
+<meta property="og:description" content="Build-only MCP server for Hedera. Full coverage of every core service + a Mirror Node analytics layer. Never holds keys. Verified live on testnet.">
+<meta property="og:type" content="website">
+<style>
+  :root {
+    --bg:#070b0a; --ink:#e7f4ef; --muted:#7a8a86; --accent:#3ec6a8;
+    --accent-dim:#1f6e5e; --grid:#10201b; --panel:#0b1310; --line:#16271f; --warn:#e6b450;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; color:var(--ink);
+    background:
+      radial-gradient(ellipse at top,#0d1a16 0%,var(--bg) 60%) fixed,
+      linear-gradient(var(--grid) 1px,transparent 1px) 0 0/54px 54px fixed,
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px) 0 0/54px 54px fixed;
+    font:15px/1.6 ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+    min-height:100vh;
+  }
+  .wrap{max-width:900px;margin:0 auto;padding:60px 26px 90px;}
+  header{display:flex;align-items:center;gap:16px;margin-bottom:6px;}
+  .mark{width:54px;height:54px;flex:0 0 54px;}
+  h1{font-size:30px;margin:0;letter-spacing:-.5px;}
+  h1 .mono{color:var(--accent);}
+  .sub{color:var(--muted);margin:2px 0 0;font-size:14px;}
+  .tag{display:inline-block;margin:18px 8px 0 0;padding:4px 10px;border:1px solid var(--line);
+    border-radius:4px;color:var(--accent);font-size:12.5px;background:var(--panel);}
+  .tag b{color:var(--ink);}
+  section{margin-top:46px;}
+  h2{font-size:13px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);
+    border-bottom:1px solid var(--line);padding-bottom:8px;margin:0 0 18px;}
+  p{color:#c2d3cd;}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent-dim);}
+  a:hover{border-bottom-color:var(--accent);}
+  pre{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px 18px;
+    overflow-x:auto;font-size:13px;color:#cfe7df;}
+  .cmd{color:var(--accent);}
+  .row{display:flex;flex-wrap:wrap;gap:10px;}
+  .svc{flex:1 1 260px;border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:14px 16px;}
+  .svc h3{margin:0 0 6px;font-size:14px;color:var(--ink);}
+  .svc h3 span{color:var(--accent);font-size:12px;}
+  .svc .t{color:var(--muted);font-size:12.5px;line-height:1.7;}
+  .stat{display:flex;gap:26px;flex-wrap:wrap;margin-top:6px;}
+  .stat div{border-left:2px solid var(--accent);padding-left:12px;}
+  .stat b{display:block;font-size:22px;color:var(--ink);}
+  .stat span{color:var(--muted);font-size:12px;}
+  .keyline{color:var(--warn);}
+  footer{margin-top:54px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:18px;}
+  .links a{margin-right:18px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="mark" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <g stroke="#3ec6a8" stroke-width="6" fill="none"><path d="M55 55 L130 100 L55 145"/></g>
+      <circle cx="55" cy="55" r="11" fill="#e8fff8"/><circle cx="55" cy="145" r="11" fill="#e8fff8"/>
+      <circle cx="130" cy="100" r="13" fill="#3ec6a8"/>
+    </svg>
+    <div>
+      <h1>hedera<span class="mono">-mcp</span></h1>
+      <p class="sub">Model Context Protocol server for Hedera (Hashgraph)</p>
+    </div>
+  </header>
+
+  <div>
+    <span class="tag"><b>73</b> tools</span>
+    <span class="tag">build-only</span>
+    <span class="tag">never holds keys</span>
+    <span class="tag">7 services + analytics</span>
+    <span class="tag">testnet-verified</span>
+  </div>
+
+  <section>
+    <p>Full coverage of every core Hedera service — Account, Token (HTS), Consensus (HCS),
+    Smart Contract (EVM), File, Schedule — plus a 14-tool Mirror Node analytics layer, exposed
+    to any AI agent over MCP. <b>Reads</b> hit the public Mirror Node (no auth). <b>Writes</b>
+    return an <i>unsigned</i>, frozen transaction you sign with your own wallet. The server
+    never sees a private key and never executes anything.</p>
+    <div class="stat">
+      <div><b>73</b><span>tools</span></div>
+      <div><b>72/73</b><span>build+read verified</span></div>
+      <div><b>10/10</b><span>live writes on testnet</span></div>
+      <div><b>0</b><span>keys held</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Install</h2>
+    <pre><span class="cmd">npx</span> @purplesquirrel/hedera-mcp</pre>
+    <p>Add to Claude Desktop / Claude Code:</p>
+    <pre>{
+  "mcpServers": {
+    "hedera": {
+      "command": "npx",
+      "args": ["-y", "@purplesquirrel/hedera-mcp"],
+      "env": { "HEDERA_NETWORK": "testnet" }
+    }
+  }
+}</pre>
+    <p class="keyline">The only optional env var is HEDERA_OPERATOR_ID — an account id, not a key.</p>
+  </section>
+
+  <section>
+    <h2>Coverage</h2>
+    <div class="row">
+      <div class="svc"><h3>Account <span>8</span></h3><div class="t">create · transfer · update · delete · allowances · info · balance · NFTs</div></div>
+      <div class="svc"><h3>Token / HTS <span>23</span></h3><div class="t">create FT/NFT · mint · burn · transfer · associate · freeze · KYC · pause · wipe · update · airdrop · reject · allowances · info</div></div>
+      <div class="svc"><h3>Consensus / HCS <span>6</span></h3><div class="t">create · submit · update · delete topic · read messages</div></div>
+      <div class="svc"><h3>Smart Contract <span>6</span></h3><div class="t">deploy · execute · update · delete · eth_call read · info</div></div>
+      <div class="svc"><h3>File <span>4</span></h3><div class="t">create · append · update · delete</div></div>
+      <div class="svc"><h3>Schedule <span>4</span></h3><div class="t">create · sign · delete · info</div></div>
+      <div class="svc"><h3>Network <span>7</span></h3><div class="t">prng · transaction · nodes · exchange rate · supply · fees · decode</div></div>
+      <div class="svc"><h3>Analytics <span>14</span></h3><div class="t">blocks · account txns · token balances &amp; NFTs · NFT history · allowances · contract results &amp; state · stake · key &amp; EVM lookup</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Build-only flow</h2>
+    <pre>agent → hedera_create_fungible_token
+      → server builds + freezes TokenCreateTransaction
+      → returns base64 (unsigned)
+      → you sign in HashPack / SDK / CLI → submit to Hedera</pre>
+    <p>Inspect anything before signing with <span class="cmd">hedera_decode_transaction</span>.
+    Verified end-to-end on testnet: token create+mint, NFT create+mint, topic, file,
+    scheduled transfer — all submitted from unsigned server output and confirmed via Mirror Node.</p>
+  </section>
+
+  <footer>
+    <div class="links">
+      <a href="https://github.com/ExpertVagabond/hedera-mcp">GitHub</a>
+      <a href="https://www.npmjs.com/package/@purplesquirrel/hedera-mcp">npm</a>
+      <a href="https://registry.modelcontextprotocol.io/v0/servers?search=hedera-mcp">MCP Registry</a>
+    </div>
+    <p>io.github.ExpertVagabond/hedera-mcp · MIT · built on @hashgraph/sdk + @modelcontextprotocol/sdk</p>
+  </footer>
+</div>
+</body>
+</html>

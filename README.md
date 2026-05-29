@@ -121,6 +121,7 @@ Besides tools, the server exposes addressable, keyless MCP **resources** agents 
 
 - [`examples/TUTORIAL.md`](examples/TUTORIAL.md) — **Build on Hedera in 5 prompts** (the certified→shipping learning path)
 - [`examples/agent-demo.md`](examples/agent-demo.md) — wire into Claude Desktop and build by asking; `node examples/agent-sim.mjs` prints a reproducible agent transcript
+- [`examples/scenarios/`](examples/scenarios/) — unique use cases, each runnable + Mirror Node-verified: **HCS notary**, **AI agent audit trail**, **agent-to-agent payments**, **self-taxing token**
 
 ## Verification
 

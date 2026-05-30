@@ -159,6 +159,32 @@ Get a free testnet account at [portal.hedera.com](https://portal.hedera.com).
 
 Built on [`@hashgraph/sdk`](https://www.npmjs.com/package/@hashgraph/sdk) and [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk).
 
+## Releasing
+
+Bump the version in `package.json`, `server.json` (both top-level `version` and `packages[0].version`), and `src/index.ts`; update `CHANGELOG.md`; then publish to npm and the MCP Registry.
+
+```bash
+npm run build
+npm publish --access public
+```
+
+Then sync the MCP Registry. **Run `mcp-publisher` from `/tmp`, not from the project directory** — on this setup the project lives on a volume where the publisher can't persist its OAuth token (`operation not permitted`), which silently fails the publish step. Copying `server.json` to a writable scratch dir sidesteps it:
+
+```bash
+mkdir -p /tmp/hedera-publish
+cp server.json /tmp/hedera-publish/
+cd /tmp/hedera-publish
+mcp-publisher login github      # device-code flow, authorize as ExpertVagabond
+mcp-publisher publish
+```
+
+Verify all three surfaces are aligned:
+
+```bash
+curl -s "https://registry.modelcontextprotocol.io/v0/servers?search=ExpertVagabond/hedera-mcp&version=latest" | jq '.servers[0].server | {name, version}'
+npm view @purplesquirrel/hedera-mcp version
+```
+
 ## License
 
 MIT © Matthew Karsten

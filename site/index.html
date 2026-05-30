@@ -48,6 +48,10 @@
   .svc h3{margin:0 0 6px;font-size:14px;color:var(--ink);}
   .svc h3 span{color:var(--accent);font-size:12px;}
   .svc .t{color:var(--muted);font-size:12.5px;line-height:1.7;}
+  .svc .prim{display:inline-block;margin-top:10px;padding:2px 8px;border:1px solid var(--accent-dim);
+    border-radius:3px;color:var(--accent);font-size:11px;}
+  .svc .run{display:block;margin-top:9px;color:#9fb3ad;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .svc .run .cmd{color:var(--accent);}
   .stat{display:flex;gap:26px;flex-wrap:wrap;margin-top:6px;}
   .stat div{border-left:2px solid var(--accent);padding-left:12px;}
   .stat b{display:block;font-size:22px;color:var(--ink);}
@@ -85,6 +89,7 @@
       <div><b>73</b><span>tools</span></div>
       <div><b>72/73</b><span>build+read verified</span></div>
       <div><b>10/10</b><span>live writes on testnet</span></div>
+      <div><b>8</b><span>use cases · live-verified</span></div>
       <div><b>0</b><span>keys held</span></div>
     </div>
   </section>
@@ -124,6 +129,25 @@
       <div class="svc"><h3>Schedule <span>4</span></h3><div class="t">create · sign · delete · info</div></div>
       <div class="svc"><h3>Network <span>7</span></h3><div class="t">prng · transaction · nodes · exchange rate · supply · fees · decode</div></div>
       <div class="svc"><h3>Analytics <span>14</span></h3><div class="t">blocks · account txns · token balances &amp; NFTs · NFT history · allowances · contract results &amp; state · stake · key &amp; EVM lookup</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Use cases</h2>
+    <p>Eight runnable scenarios — each a single command that builds via the MCP, executes on
+    testnet, and self-verifies via Mirror Node, <i>including the negative assertions</i>: the
+    compliant token proves the network <b>rejects</b> a pre-KYC transfer; the DAO payout proves
+    it won't move on a single signature. Source in
+    <a href="https://github.com/ExpertVagabond/hedera-mcp/tree/main/examples/scenarios">examples/scenarios</a>.</p>
+    <div class="row">
+      <div class="svc"><h3>Notary</h3><div class="t">Hash a document → consensus-timestamp it → tampering becomes detectable.</div><span class="prim">HCS</span><span class="run"><span class="cmd">node</span> examples/scenarios/notary.mjs</span></div>
+      <div class="svc"><h3>AI audit trail</h3><div class="t">An agent logs every action to HCS, then replays its own verifiable history.</div><span class="prim">HCS + AI</span><span class="run"><span class="cmd">node</span> examples/scenarios/audit-trail.mjs</span></div>
+      <div class="svc"><h3>Agent payments</h3><div class="t">Agent A pays Agent B in service-credit tokens per task, with a commerce ledger.</div><span class="prim">HTS + HCS</span><span class="run"><span class="cmd">node</span> examples/scenarios/agent-payments.mjs</span></div>
+      <div class="svc"><h3>Self-taxing token</h3><div class="t">Every transfer auto-tolls a treasury — protocol-enforced, no smart contract.</div><span class="prim">HTS custom fees</span><span class="run"><span class="cmd">node</span> examples/scenarios/self-taxing-token.mjs</span></div>
+      <div class="svc"><h3>Compliant token</h3><div class="t">KYC-gated + freezable: transfers are network-rejected until the issuer grants KYC. RWA / stablecoin rails.</div><span class="prim">HTS KYC + freeze</span><span class="run"><span class="cmd">node</span> examples/scenarios/compliant-token.mjs</span></div>
+      <div class="svc"><h3>Verifiable raffle</h3><div class="t">Consensus PRNG (VRF-backed, not caller-seedable) picks a winner; prize NFT minted to them.</div><span class="prim">PRNG + NFT</span><span class="run"><span class="cmd">node</span> examples/scenarios/verifiable-raffle.mjs</span></div>
+      <div class="svc"><h3>DAO treasury</h3><div class="t">A 2-of-3 scheduled payout that stays pending until the signature threshold is met, then auto-executes.</div><span class="prim">Schedule + KeyList</span><span class="run"><span class="cmd">node</span> examples/scenarios/dao-treasury.mjs</span></div>
+      <div class="svc"><h3>Chain of custody</h3><div class="t">An NFT digital twin handed down a supply chain; provenance from transfer history + an HCS log.</div><span class="prim">NFT × HCS</span><span class="run"><span class="cmd">node</span> examples/scenarios/chain-of-custody.mjs</span></div>
     </div>
   </section>
 

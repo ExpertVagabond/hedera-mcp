@@ -1,6 +1,6 @@
-// Verify hedera_query_contract against a REAL contract ABI: deploy a contract with
-// a uint getter, a string getter, and a pure function, then read all three via
-// Mirror Node eth_call (ABI-encoded calldata in, ABI-decoded results out).
+// Verify ABI-aware hedera_query_contract: deploy a real contract, then read its
+// functions by passing the ABI + function name (no hand-encoded selectors) — the
+// tool encodes calldata and decodes the result via viem.
 // Run: node test-contract-abi.mjs
 import { readFileSync } from "node:fs";
 import solc from "solc";
@@ -32,49 +32,46 @@ contract Verified {
 const out = JSON.parse(solc.compile(JSON.stringify({
   language: "Solidity",
   sources: { "Verified.sol": { content: source } },
-  settings: { outputSelection: { "*": { "*": ["evm.bytecode.object", "evm.methodIdentifiers"] } } },
+  settings: { outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } } },
 })));
 const c = out.contracts["Verified.sol"].Verified;
 const bytecode = c.evm.bytecode.object;
-const sel = c.evm.methodIdentifiers; // answer(), title(), ping()
-console.log("ABI selectors:", sel, "\n");
+const abi = c.abi; // full ABI — fed straight to the tool
+console.log("ABI functions:", abi.filter((x) => x.type === "function").map((x) => x.name).join(", "), "\n");
 
 const transport = new StdioClientTransport({ command:"node", args:["dist/index.js"], env:{...process.env} });
 const mcp = new McpClient({name:"abi",version:"0.0.0"},{capabilities:{}});
 await mcp.connect(transport);
-async function run(tool,args){
+async function send(tool,args){
   const text=(await mcp.callTool({name:tool,arguments:args})).content[0].text;
   const b64=text.split("Transaction (base64):\n")[1]?.trim();
   if(!b64) throw new Error(`no bytes from ${tool}`);
   const tx=await Transaction.fromBytes(Buffer.from(b64,"base64")).sign(key);
   return (await tx.execute(client)).getReceipt(client);
 }
-async function query(evm, selector){
-  const r = await mcp.callTool({ name:"hedera_query_contract", arguments:{ contractIdOrAddress: evm, dataHex: "0x"+selector } });
-  return JSON.parse(r.content[0].text).result;
+// ABI-aware read: pass abi + functionName, read the decoded value back
+async function callFn(evm, functionName, args = []) {
+  const r = await mcp.callTool({ name:"hedera_query_contract", arguments:{ contractIdOrAddress: evm, abi, functionName, args } });
+  return JSON.parse(r.content[0].text).decoded;
 }
-const decodeUint = (hex) => parseInt(hex, 16);
-function decodeString(hex){ const h=hex.replace(/^0x/,""); const len=parseInt(h.slice(64,128),16); return Buffer.from(h.slice(128,128+len*2),"hex").toString("utf8"); }
 
-console.log(`Contract ABI read test on ${NETWORK} as ${OP}\n`);
-const fileId = (await run("hedera_create_file", { contents: bytecode, key: opPub })).fileId.toString();
+console.log(`ABI-aware query_contract test on ${NETWORK} as ${OP}\n`);
+const fileId = (await send("hedera_create_file", { contents: bytecode, key: opPub })).fileId.toString();
 console.log(`✅ bytecode file ${fileId}`);
-const contractId = (await run("hedera_deploy_contract", { bytecodeFileId: fileId, gas: 800000, adminKey: opPub })).contractId.toString();
+const contractId = (await send("hedera_deploy_contract", { bytecodeFileId: fileId, gas: 800000, adminKey: opPub })).contractId.toString();
 console.log(`✅ deployed contract ${contractId}`);
-
 await sleep(6000);
 const evm = (await fetch(`${M}/api/v1/contracts/${contractId}`).then(r=>r.json())).evm_address;
 console.log(`   evm ${evm}\n`);
 
-const aHex = await query(evm, sel["answer()"]);
-const tHex = await query(evm, sel["title()"]);
-const pHex = await query(evm, sel["ping()"]);
-const a = decodeUint(aHex), title = decodeString(tHex), p = decodeUint(pHex);
-console.log(`✅ query_contract answer() → ${a}  ${a===73?"✓":"✗"}`);
+const a = await callFn(evm, "answer");
+const title = await callFn(evm, "title");
+const p = await callFn(evm, "ping");
+console.log(`✅ query_contract answer() → ${a}  ${String(a)==="73"?"✓":"✗"}`);
 console.log(`✅ query_contract title()  → "${title}"  ${title==="hedera-mcp"?"✓":"✗"}`);
-console.log(`✅ query_contract ping()   → ${p}  ${p===73?"✓":"✗"}`);
+console.log(`✅ query_contract ping()   → ${p}  ${String(p)==="73"?"✓":"✗"}`);
 
 await mcp.close();
-const ok = a===73 && title==="hedera-mcp" && p===73;
-console.log(`\nABI_${ok?"OK":"FAIL"} — query_contract verified against a real contract ABI (uint + string + pure)`);
+const ok = String(a)==="73" && title==="hedera-mcp" && String(p)==="73";
+console.log(`\nABI_${ok?"OK":"FAIL"} — query_contract fed a raw ABI, encoded + decoded automatically (uint + string + pure)`);
 process.exit(ok?0:1);

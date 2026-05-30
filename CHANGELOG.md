@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0
+
+- **ABI-aware contract calls.** `query_contract` and `execute_contract` now accept `{ abi, functionName, args }` — calldata is encoded (and read results decoded) automatically via viem, with integer args coerced to BigInt from the ABI. Raw `dataHex` / `functionParametersBase64` remain as fallbacks. Agents no longer need to hand-encode selectors.
+- Verified live: `test-contract-abi.mjs` reads a deployed contract by ABI — `answer()` → 73 (uint), `title()` → "hedera-mcp" (string), `ping()` → 73 (pure) — with zero hand-encoded calldata.
+
 ## 0.4.0
 
 - **MCP resources** (4): `hedera://network/exchange-rate`, `hedera://network/supply`, and templated `hedera://account/{id}` and `hedera://token/{id}` — addressable, keyless state agents can read by URI, alongside the 73 tools.

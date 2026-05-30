@@ -1,5 +1,10 @@
-/** Smart contract service (EVM). Writes are build-only; reads use Mirror Node eth_call. */
+/** Smart contract service (EVM). Writes are build-only; reads use Mirror Node eth_call.
+ *
+ * Contract calls are ABI-aware: pass { abi, functionName, args } and the tool encodes
+ * the calldata (and decodes read results) via viem — no hand-encoded hex required.
+ * Raw `dataHex` / `functionParametersBase64` remain supported as a fallback. */
 import { z } from "zod";
+import { type Abi, decodeFunctionResult, encodeFunctionData } from "viem";
 import {
   AccountId,
   ContractCreateTransaction,
@@ -12,6 +17,30 @@ import {
 } from "@hashgraph/sdk";
 import type { Register } from "../types.js";
 import { HederaCtx, json } from "../context.js";
+
+// Coerce JSON args to the types viem expects, based on the function's ABI inputs
+// (integers → BigInt, bool strings → boolean). Addresses/strings pass through.
+function coerceArgs(abi: any[], functionName: string, args: any[] = []): any[] {
+  const fn = abi.find((x) => x?.type === "function" && x?.name === functionName);
+  const inputs = fn?.inputs ?? [];
+  return args.map((v, i) => {
+    const t: string = inputs[i]?.type ?? "";
+    if (/^u?int\d*$/.test(t) && !Array.isArray(v)) return BigInt(v as any);
+    if (t === "bool") return typeof v === "boolean" ? v : v === "true";
+    return v;
+  });
+}
+
+// BigInt-safe JSON (decoded results often contain bigints).
+function abiJson(v: unknown): string {
+  return JSON.stringify(v, (_k, val) => (typeof val === "bigint" ? val.toString() : val), 2);
+}
+
+const ABI_FIELDS = {
+  abi: z.array(z.any()).optional().describe("Contract ABI (JSON array) — enables auto encode/decode"),
+  functionName: z.string().optional().describe("Function name to call (used with abi)"),
+  args: z.array(z.any()).optional().describe("Function arguments (used with abi)"),
+};
 
 export function registerContractTools(register: Register, ctx: HederaCtx): void {
   register(
@@ -45,23 +74,39 @@ export function registerContractTools(register: Register, ctx: HederaCtx): void 
 
   register(
     "hedera_execute_contract",
-    "Build (unsigned) a state-changing contract call. Provide ABI-encoded calldata as base64.",
+    "Build (unsigned) a state-changing contract call. Pass { abi, functionName, args } for automatic encoding, or raw functionParametersBase64.",
     {
       contractId: z.string().describe("Contract id (0.0.x) or EVM address"),
       gas: z.number().int().positive(),
+      ...ABI_FIELDS,
       functionParametersBase64: z
         .string()
-        .describe("ABI-encoded calldata (selector + args) as base64"),
+        .optional()
+        .describe("Fallback: ABI-encoded calldata (selector + args) as base64"),
       payableAmountHbar: z.number().optional().describe("HBAR to send with the call"),
       payerAccountId: z.string().optional(),
     },
     async (a) => {
+      let params: Buffer;
+      if (a.abi && a.functionName) {
+        const hex = encodeFunctionData({
+          abi: a.abi as Abi,
+          functionName: a.functionName,
+          args: coerceArgs(a.abi, a.functionName, a.args),
+        });
+        params = Buffer.from(hex.slice(2), "hex");
+      } else if (a.functionParametersBase64) {
+        params = Buffer.from(a.functionParametersBase64, "base64");
+      } else {
+        throw new Error("Provide either { abi, functionName, args? } or functionParametersBase64.");
+      }
       const tx = new ContractExecuteTransaction()
         .setContractId(ContractId.fromString(a.contractId))
         .setGas(a.gas)
-        .setFunctionParameters(Buffer.from(a.functionParametersBase64, "base64"));
+        .setFunctionParameters(params);
       if (a.payableAmountHbar != null) tx.setPayableAmount(new Hbar(a.payableAmountHbar));
-      return ctx.buildAndRender(tx, `Execute contract ${a.contractId} · gas ${a.gas}`, a.payerAccountId);
+      const label = a.functionName ? `${a.functionName}()` : "calldata";
+      return ctx.buildAndRender(tx, `Execute contract ${a.contractId} · ${label} · gas ${a.gas}`, a.payerAccountId);
     },
   );
 
@@ -98,20 +143,38 @@ export function registerContractTools(register: Register, ctx: HederaCtx): void 
 
   register(
     "hedera_query_contract",
-    "Read a contract view/pure function via the Mirror Node eth_call endpoint (keyless, no gas spent).",
+    "Read a contract view/pure function via Mirror Node eth_call (keyless, no gas). Pass { abi, functionName, args } for auto encode/decode, or raw dataHex.",
     {
       contractIdOrAddress: z.string().describe("Contract id (0.0.x) or 0x EVM address"),
-      dataHex: z.string().describe("ABI-encoded calldata as 0x-prefixed hex"),
+      ...ABI_FIELDS,
+      dataHex: z.string().optional().describe("Fallback: ABI-encoded calldata as 0x-prefixed hex"),
       fromAddress: z.string().optional().describe("Optional 0x caller address"),
     },
     async (a) => {
-      const body: Record<string, unknown> = {
-        to: a.contractIdOrAddress,
-        data: a.dataHex.startsWith("0x") ? a.dataHex : `0x${a.dataHex}`,
-        estimate: false,
-      };
+      let data: string;
+      if (a.abi && a.functionName) {
+        data = encodeFunctionData({
+          abi: a.abi as Abi,
+          functionName: a.functionName,
+          args: coerceArgs(a.abi, a.functionName, a.args),
+        });
+      } else if (a.dataHex) {
+        data = a.dataHex.startsWith("0x") ? a.dataHex : `0x${a.dataHex}`;
+      } else {
+        throw new Error("Provide either { abi, functionName, args? } or dataHex.");
+      }
+      const body: Record<string, unknown> = { to: a.contractIdOrAddress, data, estimate: false };
       if (a.fromAddress) body.from = a.fromAddress;
-      return json(await ctx.mirrorPost(`/api/v1/contracts/call`, body));
+      const res: any = await ctx.mirrorPost(`/api/v1/contracts/call`, body);
+      if (a.abi && a.functionName && res?.result) {
+        const decoded = decodeFunctionResult({
+          abi: a.abi as Abi,
+          functionName: a.functionName,
+          data: res.result as `0x${string}`,
+        });
+        return abiJson({ function: a.functionName, result: res.result, decoded });
+      }
+      return abiJson(res);
     },
   );
 

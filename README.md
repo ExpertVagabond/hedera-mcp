@@ -101,7 +101,7 @@ hedera_decode_transaction { transactionBase64: "<bytes>" }
 
 **Consensus / HCS (6):** create_topic · submit_message · update_topic · delete_topic · get_topic_info · get_topic_messages
 
-**Smart contract / EVM (6):** deploy_contract · execute_contract · update_contract · delete_contract · query_contract (eth_call) · get_contract_info
+**Smart contract / EVM (6):** deploy_contract · execute_contract · update_contract · delete_contract · query_contract · get_contract_info — `execute_contract` & `query_contract` are **ABI-aware** (pass `{ abi, functionName, args }`; calldata encoded + results decoded automatically)
 
 **File (4):** create_file · append_file · update_file · delete_file
 
@@ -130,7 +130,7 @@ Besides tools, the server exposes addressable, keyless MCP **resources** agents 
 - `node test-live.mjs` — **10/10 write paths executed on testnet**, Mirror Node-verified
 - `node test-battle-live.mjs` — **battle mode: 31/31 operations on testnet** across two accounts (full token lifecycle incl. freeze/KYC/pause/wipe, NFT, topic, file, scheduled transfer requiring a 2nd signer, PRNG), Mirror Node-verified
 - `node test-contract.mjs` — real Solidity contract **compiled → deployed → executed → read** end-to-end (`store(42)` → `retrieve()` = 42), confirming the full EVM path and `query_contract`
-- `node test-contract-abi.mjs` — `query_contract` verified against a real contract ABI: `answer()` → 73 (uint), `title()` → "hedera-mcp" (string), `ping()` → 73 (pure)
+- `node test-contract-abi.mjs` — **ABI-aware** `query_contract`: fed a raw ABI, it auto-encodes/decodes — `answer()` → 73 (uint), `title()` → "hedera-mcp" (string), `ping()` → 73 (pure)
 
 ## Development
 

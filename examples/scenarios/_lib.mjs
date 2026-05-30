@@ -14,7 +14,13 @@ function loadEnv() {
   }
 }
 export function parseKey(s) {
-  for (const f of [PrivateKey.fromStringECDSA, PrivateKey.fromStringED25519, PrivateKey.fromString]) {
+  // Disambiguate by DER prefix — the ECDSA parser otherwise silently accepts
+  // an ED25519 DER string and returns a wrong key → INVALID_SIGNATURE on chain.
+  const clean = s.replace(/^0x/, "").toLowerCase();
+  const order = clean.startsWith("302e020100300506032b6570")
+    ? [PrivateKey.fromStringED25519, PrivateKey.fromStringECDSA, PrivateKey.fromString]
+    : [PrivateKey.fromStringECDSA, PrivateKey.fromStringED25519, PrivateKey.fromString];
+  for (const f of order) {
     try { return f(s); } catch {}
   }
   throw new Error("bad key");

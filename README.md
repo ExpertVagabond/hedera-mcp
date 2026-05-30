@@ -131,6 +131,7 @@ Besides tools, the server exposes addressable, keyless MCP **resources** agents 
 - `node test-battle-live.mjs` — **battle mode: 31/31 operations on testnet** across two accounts (full token lifecycle incl. freeze/KYC/pause/wipe, NFT, topic, file, scheduled transfer requiring a 2nd signer, PRNG), Mirror Node-verified. Re-run signed by an **ED25519** operator: 31/31 still pass — non-EVM tools are key-type-agnostic (the server holds no keys; EVM tools inherently require ECDSA per Hedera's EVM-alias rule)
 - `node test-contract.mjs` — real Solidity contract **compiled → deployed → executed → read** end-to-end (`store(42)` → `retrieve()` = 42), confirming the full EVM path and `query_contract`
 - `node test-contract-abi.mjs` — **ABI-aware** `query_contract`: fed a raw ABI, it auto-encodes/decodes — `answer()` → 73 (uint), `title()` → "hedera-mcp" (string), `ping()` → 73 (pure)
+- `node test-edge-cases.mjs` — **12/12 edge paths on testnet** the happy-path suites miss: large file via create+append (>1 tx chunk), HCS message >1024 B auto-chunked across 2 mirror entries (reassembled to 1200 B), NFT collection with a 10% royalty + 1ℏ fallback custom fee, delegated approved spend (operator approves B → B pulls 200 paying its own fee), HBAR → fresh ED25519 alias auto-account-create, and a `decode_transaction` round-trip
 
 ## Development
 

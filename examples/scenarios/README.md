@@ -14,8 +14,14 @@ via Mirror Node. Run from the project root: `node examples/scenarios/<name>.mjs`
 | [`verifiable-raffle.mjs`](verifiable-raffle.mjs) | Consensus PRNG (VRF-backed, not caller-seedable) picks a winner; the prize NFT is minted straight to them | Native PRNG + HTS NFT |
 | [`dao-treasury.mjs`](dao-treasury.mjs) | A 2-of-3 scheduled payout that stays pending until the threshold of council signatures is gathered on-chain, then auto-executes | Scheduled tx + KeyList threshold |
 | [`chain-of-custody.mjs`](chain-of-custody.mjs) | An NFT digital twin handed producer→shipper→customs→retailer; provenance reconstructed from NFT transfer history + an HCS log | HTS NFT × HCS |
+| [`frictionless-airdrop.mjs`](frictionless-airdrop.mjs) | HIP-904 airdrops land in recipients' auto-association slots — they sign no association tx and need no claim. Zero-friction onboarding | HTS airdrop (HIP-904) |
+| [`hcs-price-feed.mjs`](hcs-price-feed.mjs) | Price ticks published to a topic; every consumer reads the same consensus-ordered, timestamped feed. Cross-checked vs the native HBAR↔USD rate | HCS feed + exchange rate |
+| [`agent-reputation.mjs`](agent-reputation.mjs) | Multiple agents post work-receipts to a shared topic; replay the ledger to score each agent. Append-only, no central DB | HCS multi-agent ledger |
+| [`carbon-registry.mjs`](carbon-registry.mjs) | NFT = 1 tonne CO2; issue (mint) → trade → retire (burn). `total_supply` is the count of credits still outstanding | HTS NFT + burn-as-retirement |
+| [`anti-scalp-ticket.mjs`](anti-scalp-ticket.mjs) | NFT tickets with a network-enforced resale royalty (organiser's cut paid on every secondary sale) and burn-on-entry redemption | NFT royalty + burn |
+| [`metered-api.mjs`](metered-api.mjs) | Prepaid credit token; each API call spends credits that are then burned (supply = credits owed), with a tamper-evident HCS usage log | HTS burn + HCS |
 
-All eight were verified live on Hedera testnet — each asserts its claim, including the negative
+All fourteen were verified live on Hedera testnet — each asserts its claim, including the negative
 ones (e.g. `compliant-token` proves the network *rejects* a pre-KYC transfer with
 `ACCOUNT_KYC_NOT_GRANTED_FOR_TOKEN`, and `dao-treasury` proves the payout does not move on one
 signature). They double as DevRel demos: a single command that produces an on-chain,

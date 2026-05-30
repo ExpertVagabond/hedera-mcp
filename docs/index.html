@@ -89,7 +89,7 @@
       <div><b>73</b><span>tools</span></div>
       <div><b>72/73</b><span>build+read verified</span></div>
       <div><b>10/10</b><span>live writes on testnet</span></div>
-      <div><b>8</b><span>use cases · live-verified</span></div>
+      <div><b>14</b><span>use cases · live-verified</span></div>
       <div><b>0</b><span>keys held</span></div>
     </div>
   </section>
@@ -134,7 +134,7 @@
 
   <section>
     <h2>Use cases</h2>
-    <p>Eight runnable scenarios — each a single command that builds via the MCP, executes on
+    <p>Fourteen runnable scenarios — each a single command that builds via the MCP, executes on
     testnet, and self-verifies via Mirror Node, <i>including the negative assertions</i>: the
     compliant token proves the network <b>rejects</b> a pre-KYC transfer; the DAO payout proves
     it won't move on a single signature. Source in
@@ -148,6 +148,12 @@
       <div class="svc"><h3>Verifiable raffle</h3><div class="t">Consensus PRNG (VRF-backed, not caller-seedable) picks a winner; prize NFT minted to them.</div><span class="prim">PRNG + NFT</span><span class="run"><span class="cmd">node</span> examples/scenarios/verifiable-raffle.mjs</span></div>
       <div class="svc"><h3>DAO treasury</h3><div class="t">A 2-of-3 scheduled payout that stays pending until the signature threshold is met, then auto-executes.</div><span class="prim">Schedule + KeyList</span><span class="run"><span class="cmd">node</span> examples/scenarios/dao-treasury.mjs</span></div>
       <div class="svc"><h3>Chain of custody</h3><div class="t">An NFT digital twin handed down a supply chain; provenance from transfer history + an HCS log.</div><span class="prim">NFT × HCS</span><span class="run"><span class="cmd">node</span> examples/scenarios/chain-of-custody.mjs</span></div>
+      <div class="svc"><h3>Frictionless airdrop</h3><div class="t">HIP-904 airdrops land in auto-association slots — recipients sign no associate tx and never claim.</div><span class="prim">HTS airdrop</span><span class="run"><span class="cmd">node</span> examples/scenarios/frictionless-airdrop.mjs</span></div>
+      <div class="svc"><h3>HCS price feed</h3><div class="t">A consensus-ordered oracle bus: every consumer reads the same timestamped tick sequence. + native HBAR/USD rate.</div><span class="prim">HCS + exchange rate</span><span class="run"><span class="cmd">node</span> examples/scenarios/hcs-price-feed.mjs</span></div>
+      <div class="svc"><h3>Agent reputation</h3><div class="t">Agents post work-receipts to a shared topic; replay the ledger to score each one. No central DB.</div><span class="prim">HCS multi-agent</span><span class="run"><span class="cmd">node</span> examples/scenarios/agent-reputation.mjs</span></div>
+      <div class="svc"><h3>Carbon registry</h3><div class="t">NFT = 1 tonne CO2; mint → trade → retire (burn). Supply = credits still outstanding.</div><span class="prim">NFT + burn</span><span class="run"><span class="cmd">node</span> examples/scenarios/carbon-registry.mjs</span></div>
+      <div class="svc"><h3>Anti-scalp ticket</h3><div class="t">NFT tickets with a network-enforced resale royalty + burn-on-entry redemption.</div><span class="prim">NFT royalty + burn</span><span class="run"><span class="cmd">node</span> examples/scenarios/anti-scalp-ticket.mjs</span></div>
+      <div class="svc"><h3>Metered API</h3><div class="t">Prepaid credits burned per call (supply = credits owed) with a tamper-evident HCS usage log.</div><span class="prim">HTS burn + HCS</span><span class="run"><span class="cmd">node</span> examples/scenarios/metered-api.mjs</span></div>
     </div>
   </section>
 
